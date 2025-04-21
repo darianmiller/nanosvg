@@ -1,4 +1,8 @@
-*This project is not actively maintained.*
+
+*The NanoSVG project is not actively maintained.*
+
+This is a _possibly temporary_ fork for experimental usage with RAD Studio with a C++ Builder DLL project and a Delphi example project.
+
 
 Nano SVG
 ==========
