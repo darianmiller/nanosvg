@@ -1,8 +1,10 @@
 
+**April 2025** This is an experimental fork for usage with RAD Studio that includes a C++ Builder DLL project and a Delphi example project.
+
+
+----
+
 *The NanoSVG project is not actively maintained.*
-
-This is a _possibly temporary_ fork for experimental usage with RAD Studio with a C++ Builder DLL project and a Delphi example project.
-
 
 Nano SVG
 ==========
