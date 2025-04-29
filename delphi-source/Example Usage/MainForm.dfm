@@ -96,4 +96,12 @@ object ExampleForm: TExampleForm
     Caption = 'Panel4'
     TabOrder = 5
   end
+  object edtSize: TEdit
+    Left = 8
+    Top = 200
+    Width = 121
+    Height = 23
+    TabOrder = 6
+    Text = 'edtSize'
+  end
 end

@@ -1,4 +1,3 @@
-// nsvg_wrapper.cpp
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
@@ -6,6 +5,7 @@
 
 #include <windows.h>
 #include <stdlib.h>
+
 extern "C" __declspec(dllexport)
 unsigned char* __cdecl rasterize_svg_fit(const char* svgText,
     float targetW, float targetH,
@@ -54,7 +54,6 @@ unsigned char* __cdecl rasterize_svg_fit(const char* svgText,
     return img;
 }
 
-
 extern "C" __declspec(dllexport)
 void __cdecl free_image(unsigned char* ptr)
 {
@@ -62,3 +61,50 @@ void __cdecl free_image(unsigned char* ptr)
         free(ptr);
 }
 
+extern "C" __declspec(dllexport)
+int __cdecl get_svg_fit_size(const char* svgText,
+    float maxW, float maxH,
+    int* outW, int* outH)
+{
+    NSVGimage* image = nsvgParse((char*)svgText, "px", 96);
+    if (!image)
+        return 0; // failure
+
+    // If both are zero, just return the image’s native size
+    if (maxW <= 0 && maxH <= 0) {
+        *outW = (int)image->width;
+        *outH = (int)image->height;
+    }
+    else {
+        // If one axis is unconstrained, compute it to preserve aspect ratio
+        if (maxW <= 0)
+            maxW = maxH * (image->width / image->height);
+        if (maxH <= 0)
+            maxH = maxW * (image->height / image->width);
+
+        float scaleX = maxW / image->width;
+        float scaleY = maxH / image->height;
+        float scale  = (scaleX < scaleY) ? scaleX : scaleY;
+
+        *outW = (int)(image->width  * scale);
+        *outH = (int)(image->height * scale);
+    }
+
+    nsvgDelete(image);
+    return 1; // success
+}
+
+extern "C" __declspec(dllexport)
+int __cdecl get_svg_nativesize(const char* svgText,
+	int* outW, int* outH)
+{
+    NSVGimage* image = nsvgParse((char*)svgText, "px", 96);
+    if (!image)
+        return 0; // failure
+
+	*outW = (int)image->width;
+	*outH = (int)image->height;
+
+    nsvgDelete(image);
+    return 1; // success
+}

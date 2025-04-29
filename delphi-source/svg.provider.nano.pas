@@ -14,9 +14,13 @@ type
   public
     { ISVGRasterizer }
     procedure Rasterize(const SVGText:UTF8String; const TargetBitmap:TBitmap; const TargetWidth:Integer; const TargetHeight:Integer; const UseTransparentBackground:Boolean = True; const BackgroundColor:TColor = clNone);
+    function GetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+    function GetSizedToFit(const SVGText:UTF8String; const TargetWidth:Integer; const TargetHeight:Integer; out ImageWidth:Integer; out ImageHeight:Integer):integer;
 
     // directly callable and used to implement the interface
     class procedure RasterizeWithNano(const SVGText:UTF8String; const TargetBitmap:TBitmap; const TargetWidth:Integer; const TargetHeight:Integer; const UseTransparentBackground:Boolean = True; const BackgroundColor:TColor = clNone);
+    class function NanoGetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+    class function NanoGetSizedToFit(const SVGText:UTF8String; const TargetWidth:Integer; const TargetHeight:Integer; out ImageWidth:Integer; out ImageHeight:Integer):integer;
   end;
 
 
@@ -34,14 +38,26 @@ const
 
 function rasterize_svg_fit(svg:PAnsiChar; targetW, targetH:Single; out imgW, imgH:Integer; convertToBGRA:Integer):PByteArray; cdecl; external DLL_NAME name '_rasterize_svg_fit';
 procedure free_image(ptr:PByteArray); cdecl; external DLL_NAME name '_free_image';
+
+function get_svg_nativesize(svg:PAnsiChar; out imgW, imgH:Integer):integer; cdecl; external DLL_NAME name '_get_svg_nativesize';
+function get_svg_fit_size(svg:PAnsiChar; targetW, targetH:Single; out imgW, imgH:Integer):integer; cdecl; external DLL_NAME name '_get_svg_fit_size';
 {$ENDREGION}
 
 
 
+// simply forwards to class procedures (which can be directly called)
 procedure TNanoSVGRasterizer.Rasterize(const SVGText:UTF8String; const TargetBitmap:TBitmap; const TargetWidth:Integer; const TargetHeight:Integer; const UseTransparentBackground:Boolean = True; const BackgroundColor:TColor = clNone);
 begin
-  // simply forwards to class procedure (which can be directly called)
   RasterizeWithNano(SVGText, TargetBitmap, TargetWidth, TargetHeight, UseTransparentBackground, BackgroundColor);
+end;
+function TNanoSVGRasterizer.GetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+begin
+  Result := NanoGetNativeSize(SVGText, ImageWidth, ImageHeight);
+end;
+
+function TNanoSVGRasterizer.GetSizedToFit(const SVGText:UTF8String; const TargetWidth:Integer; const TargetHeight:Integer; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+begin
+  Result := NanoGetSizedToFit(SVGText, TargetWidth, TargetHeight, ImageWidth, ImageHeight);
 end;
 
 
@@ -117,6 +133,26 @@ begin
     free_image(Buffer);
   end;
 end;
+
+
+class function TNanoSVGRasterizer.NanoGetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+var
+  NullTerminated:UTF8String;
+begin
+  LogIt('Extracting native SVG size');
+  NullTerminated := SVGText + #0;
+  Result := get_svg_nativesize(PAnsiChar(NullTerminated), ImageWidth, ImageHeight);
+end;
+
+class function TNanoSVGRasterizer.NanoGetSizedToFit(const SVGText:UTF8String; const TargetWidth:Integer; const TargetHeight:Integer; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+var
+  NullTerminated:UTF8String;
+begin
+  LogIt(Format('Calculating target SVG size to proportionately fit w:%d h:%d', [TargetWidth, TargetHeight]));
+  NullTerminated := SVGText + #0;
+  Result := get_svg_fit_size(PAnsiChar(NullTerminated), TargetWidth, TargetHeight, ImageWidth, ImageHeight);
+end;
+
 
 
 initialization

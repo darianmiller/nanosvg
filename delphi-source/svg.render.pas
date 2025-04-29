@@ -1,3 +1,4 @@
+//todo: Test multi-threaded rendering (possibly serialize)
 unit svg.render;
 
 interface
@@ -46,6 +47,9 @@ type
 
     // Utility method for that includes image scaling
     class procedure DrawSVGFileToImage(const FileName:string; const Target:TImage);
+
+    class function GetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+
 
     // Optional utility debugging method
     class procedure LogIt(const Msg:string);
@@ -190,6 +194,14 @@ begin
     OnLog(Msg);
 end;
 
+
+class function TRenderSVG.GetNativeSize(const SVGText:UTF8String; out ImageWidth:Integer; out ImageHeight:Integer):integer;
+begin
+  if not HasRasterizer then
+    raise Exception.Create('A SVG rasterizer has not yet been registered');
+
+  Result := FRasterizer.GetNativeSize(SVGText, ImageWidth, ImageHeight);
+end;
 
 class procedure TRenderSVG.DrawSVGFileToImage(const FileName:string; const Target:TImage);
 var

@@ -30,6 +30,7 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    edtSize: TEdit;
     procedure butLoadSVGClick(Sender:TObject);
     procedure FormCreate(Sender:TObject);
     procedure PaintBox1Paint(Sender:TObject);
@@ -81,9 +82,12 @@ end;
 procedure TExampleForm.LoadExample;
 var
   svg:UTF8String;
+  w,h:integer;
 begin
   TRenderSVG.DrawSVGFileToImage('Example1.svg', Image1); // Bitmap retrieved from cache on second call with same file/resource name and size
   svg := TUTF8Util.ReadFromFile('Example2.svg');
+  TRenderSVG.GetNativeSize(svg, w, h);
+  edtSize.Text := Format('w: %d h: %d', [w, h]);
   TRenderSVG.DrawToBitmap(svg, Image2.Picture.Bitmap, Image2.Width, Image2.Height); // direct load from svg xml string
 end;
 
